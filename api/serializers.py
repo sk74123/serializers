@@ -5,7 +5,7 @@ from .models import Brand
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
-        exclude = ('id',)
+        fields = ['id', 'name', 'country', 'founded']
 
 
     # Field Level Validation
@@ -27,21 +27,5 @@ class BrandSerializer(serializers.ModelSerializer):
 
         return value
 
-    #Object Level Validation
-    def validate(self, data):
-        '''
-
-        Object Level Validation for BrandSerializer
-
-        '''
-        print(data)
-        country = data.get('country')
-        name = data.get('name')
-
-        if country.lower() == 'pakistan':
-            raise serializers.ValidationError('Country should not be Pakistan')
-        if name[0] != name[0].upper():
-            raise serializers.ValidationError('First character should be in uppercase')
-        return data
 
 

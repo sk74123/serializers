@@ -1,9 +1,11 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import HttpResponse
 from rest_framework.response import Response
 from .models import Brand
 from .serializers import BrandSerializer
-from rest_framework.decorators import api_view
-from rest_framework import  status
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
 # Create your views here.
 
 
@@ -11,54 +13,39 @@ def home(request):
     return HttpResponse('Django is on track')
 
 
-@api_view(['GET', 'POST'])
-def brand_list(request):
+class BrandList(GenericAPIView, ListModelMixin, CreateModelMixin):
 
-    if request.method == 'GET':
-        obj = Brand.objects.all()
-        print('request.body', request.body)
-        print('request.data', request.data)
-        print('query_params', request.query_params)
-        serializer = BrandSerializer(obj, many=True)
-        print(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
 
-    if request.method == 'POST':
-        print('request.body', request.body)
-        print('request.data', request.data)
-        print('query_params', request.query_params)
-        serializer = BrandSerializer(data=request.data)
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+
+        print(self.serializer_class)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
+            print('serializer', serializer)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return self.create(request, *args, **kwargs)
+
+        return Response(serializer.errors, status=status.HTTP_200_OK)
 
 
-@api_view(['PUT', 'PATCH', 'DELETE'])
-def brand_update(request, pk):
 
-    if request.method == 'PUT':
-        obj = Brand.objects.get(id=pk)
-        serializer = BrandSerializer(obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+class BrandUpdate(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin):
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
 
-    if request.method == 'PATCH':
-        obj = Brand.objects.get(id=pk)
-        serializer = BrandSerializer(obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    if request.method == 'DELETE':
-        obj = Brand.objects.get(id=pk)
-        obj.delete()
-        return Response(status.HTTP_200, status=status.HTTP_400_BAD_REQUEST)
-
+    def delete(self,request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
 

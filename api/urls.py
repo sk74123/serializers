@@ -1,9 +1,9 @@
 from django.urls import path, include
-from .views import home, brand_list, brand_update
+from .views import home, BrandList, BrandUpdate
 
 
 urlpatterns = [
     path('', home),
-    path('brand', brand_list),
-    path('update/<int:pk>', brand_update)
+    path('brand', BrandList.as_view()),
+    path('update/<int:pk>', BrandUpdate.as_view())
 ]
